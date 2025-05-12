@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+  crossorigin="anonymous">
+  <style>
+
+body {
+      background: linear-gradient(
+        rgba(0, 0, 0, 0.6),
+        rgba(0, 0, 0, 0.6)
+      ),
+      url('/static/images/image copy 3.png') no-repeat center center;
+      background-size: cover;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: #051bc2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+  
+  </style>
+  <script>
+
+    function viewForm(event){
+        const titleElement=event.target.parentElement.parentElement;
+        const formId=parseInt(titleElement.getElementsByClassName("formId")[0].textContent);
+        console.log(formId)
+        window.location.href=window.origin+"/forms/"+formId
+
+    }
+
+    function showResponse(event){
+      const titleElement=event.target.parentElement.parentElement;
+      const formId=parseInt(titleElement.getElementsByClassName("formId")[0].textContent);
+      window.location.href=window.origin+"/form/"+formId+"/responses"
+
+    }
+
+    function deleteForm(){
+      const titleElement=event.target.parentElement.parentElement;
+      const formId=parseInt(titleElement.getElementsByClassName("formId")[0].textContent);
+      deleteData(formId).then(data=>{
+        window.location.href=window.origin+"/admin";
+      }).catch(err=>console.log(err));
+    }
+    async function deleteData(formId){
+      const token=localStorage.getItem("token");
+        try{
+          await fetch("http://localhost:5000/admin/form/"+formId,{method: "DELETE",headers:{Authorization:`Bearer ${token}`}});
+        }
+        catch(error){
+          console.log(error);
+        }
+    }
+ 
+    function editForm(event){
+      const titleElement=event.target.parentElement.parentElement;
+      const formId=parseInt(titleElement.getElementsByClassName("formId")[0].textContent);
+      const url=new URLSearchParams(window.location.href);
+      url.set("edit","true")
+      window.location.href=window.origin + "/forms/"+formId + "?edit=true";
+      
+    }
+
+  
+
+async function getData() {
+  try {
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      alert("You are not authorized to access this page.");
+      window.location.href = "/login.html";
+      return;
+    }
+
+    const response = await fetch("http://localhost:5000/admin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`, 
+      },
+    });
+
+    if (response.status === 401) {
+      alert("Unauthorized. Please log in again.");
+      window.location.href = "/login.html"; 
+      return;
+    }
+
+    const data = await response.json();
+
+    data.forEach((data) => {
+      document.getElementsByClassName("formcontainer")[0].innerHTML += `
+        <div class="col d-flex justify-content-center">
+          <div class="card" style="width: 18rem;">
+            <img src="/static/images/image copy 4.png" class="card-img-top" alt="Form Icon" style="height: 150px; object-fit: contain; padding: 10px;">
+            <div class="card-body">
+              <h5 class="card-title">${data.title}</h5>
+              <span hidden class="formId">${data.formId}</span>
+              <p class="card-text">
+                This is a wider card with supporting text below as a natural lead-in to additional content.
+              </p>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+              <button class="view btn btn-primary btn-sm">View</button>
+              <button class="edit btn btn-warning btn-sm">Edit</button>
+              <button class="delete btn btn-danger btn-sm">Delete</button>
+              <button class="response btn btn-info">Show Response</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    Array.from(document.getElementsByClassName("view")).forEach((a) => {
+      a.addEventListener("click", viewForm);
+    });
+
+    Array.from(document.getElementsByClassName("edit")).forEach((element) => {
+      element.addEventListener("click", editForm);
+    });
+
+    Array.from(document.getElementsByClassName("delete")).forEach((element) => {
+      element.addEventListener("click", deleteForm);
+    });
+    Array.from(document.getElementsByClassName("response")).forEach((element) => {
+      element.addEventListener("click", showResponse);
+    });
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+    
+    function handleData(event){
+        console.log(event);
+    }
+
+    function createForm(event){
+      window.location.href=window.origin+"/forms"
+    }
+
+    document.addEventListener("DOMContentLoaded",function(){
+      getData()
+      document.getElementById("createform").addEventListener("click",createForm)
+
+      document.getElementById("logoutBtn").addEventListener("click", function () {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    window.location.href = "/"; 
+      })
+
+    })
+
+  
+
+  </script>
+</head>
+<body>
+
+
+  
+ 
+ 
+  <div class="maindiv container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 id="welcomeMessage" class="mb-0">Welcome, Admin</h1>
+      <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    </div>
+  
+    <div class="formcontainer row row-cols-1 row-cols-md-3 g-3">
+    
+    </div>
+    <button type="button" id="createform" class=" button btn btn-primary btn-lg mr-7">Create New Form</button>
+    <div>
+     
+    
+    </div>
+   
+  </div>
+ 
+
+
+</body>
+</html>
+

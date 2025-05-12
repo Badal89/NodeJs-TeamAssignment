@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill Form</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      background: linear-gradient(
+        rgba(0, 0, 0, 0.6),
+        rgba(0, 0, 0, 0.6)
+      ),
+      url('/static/images/image copy 3.png') no-repeat center center;
+      background-size: cover;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+
+    .container {
+      background: rgba(4, 4, 4, 0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 50px;
+    }
+
+    h1 {
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background-color: #6c63ff;
+      border: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #574fd6;
+    }
+
+   
+
+
+  </style>
+  <script>
+ 
+    async function getData(token,formId){
+          try {
+            console.log(formId)
+          const response = await fetch("http://localhost:5000/auth/forms/"+parseInt(formId), {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response;
+          } catch (error) {
+              console.log(error);
+          }
+    }
+ 
+ 
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("submitFormButton").addEventListener("click",submitForm)
+      const token = localStorage.getItem("token");
+      const formId = window.location.pathname.split("/")[2];
+      console.log(window.location.pathname.split("/"))
+      if (!token) {
+        alert("You are not authorized to access this page.");
+        window.location.href = "/login.html";
+        return;
+      }
+ 
+          getData(token,formId).then(data=>data.json()).
+          then(data=>{
+            const formContainer = document.getElementById("formContainer");
+            console.log(data["data"]);
+            data["data"].formFields.forEach((field,index) => {
+            const formGroup = document.createElement("div");
+            formGroup.classList.add("mb-3");
+            if(Object.keys(field)[0]==="radio"){
+              const mainDiv=document.createElement("div");
+              mainDiv.classList.add("radioinp");
+              const mainLabel = document.createElement("label");
+                mainLabel.classList.add("form-label", "d-block");
+                mainLabel.textContent = field[Object.keys(field)[0]]["mainLabel"];
+                mainDiv.appendChild(mainLabel)
+                
+                field[Object.keys(field)[0]].options.forEach((dat, ind) => {
+                  const divElement = document.createElement("div");
+                  divElement.classList.add("form-check", "form-check-inline");
+ 
+                  const inp = document.createElement("input");
+                  inp.setAttribute("type", "radio");
+                  inp.setAttribute("value", dat);
+                  inp.setAttribute("id", `radio-${dat}-${index}`);
+                  inp.setAttribute("name", `radioGroup${index}`);
+                  inp.classList.add("form-check-input");
+ 
+                  const label = document.createElement("label");
+                  label.textContent = dat;
+                  label.setAttribute("for", `radio-${dat}-${index}`);
+                  label.classList.add("form-check-label");
+ 
+                  divElement.appendChild(inp);
+                  divElement.appendChild(label);
+                  mainDiv.appendChild(divElement);
+                })
+                formContainer.appendChild(mainDiv);
+              }
+ 
+              if(Object.keys(field)[0]==="checkbox"){
+              const mainDiv=document.createElement("div");
+              mainDiv.classList.add("checkinp");
+              const mainLabel = document.createElement("label");
+                mainLabel.classList.add("form-label", "d-block");
+                mainLabel.textContent = field[Object.keys(field)[0]]["mainLabel"];
+                mainDiv.appendChild(mainLabel)
+                
+                field[Object.keys(field)[0]].options.forEach((dat, ind) => {
+                  const divElement = document.createElement("div");
+                  divElement.classList.add("form-check", "form-check-inline");
+ 
+                  const inp = document.createElement("input");
+                  inp.setAttribute("type", "checkbox");
+                  inp.setAttribute("value", dat);
+                  inp.setAttribute("id", `check-${dat}-${index}`);
+                  inp.setAttribute("name", `check-${dat}-${index}}`);
+                  inp.classList.add("form-check-input");
+ 
+                  const label = document.createElement("label");
+                  label.textContent = dat;
+                  label.setAttribute("for", `radio-${dat}-${index}`);
+                  label.classList.add("form-check-label");
+ 
+                  divElement.appendChild(inp);
+                  divElement.appendChild(label);
+                  mainDiv.appendChild(divElement);
+                })
+                formContainer.appendChild(mainDiv);
+            }
+ 
+            else if (Object.keys(field)[0] === "select") {
+                const divWrapper = document.createElement("div");
+                divWrapper.classList.add("mb-3");
+                divWrapper.classList.add("selectMenuDiv");
+                divWrapper.setAttribute("id","selectMenuDiv")
+                const label = document.createElement("label");
+                label.setAttribute("for", `select-${Object.keys(field)[0]}`);
+                label.textContent = `Choose ${field[Object.keys(field)[0]]["mainLabel"]}`;
+ 
+                const selectDiv = document.createElement("select");
+                selectDiv.classList.add("form-select");
+                selectDiv.setAttribute("id", `select-${Object.keys(field)[0]}`);
+ 
+                field[Object.keys(field)[0]].options.forEach((dat) => {
+                  const option = document.createElement("option");
+                  option.setAttribute("value", dat);
+                  option.textContent = dat;
+                  selectDiv.appendChild(option);
+                });
+ 
+                divWrapper.appendChild(label);
+                divWrapper.appendChild(selectDiv);
+                formContainer.appendChild(divWrapper);
+              }
+                
+              else if (Object.keys(field)[0] === "textArea") {
+                const divElement = document.createElement("div");
+                divElement.classList.add("mb-3","textAreaDiv");
+                divElement.setAttribute("id","textAreaDiv")
+                const label = document.createElement("label");
+                label.textContent = field[Object.keys(field)[0]]["mainLabel"][0] || "Text Area";
+                label.classList.add("form-label");
+                label.setAttribute("for", `${field[Object.keys(field)[0]]["mainLabel"][0] || "textarea"}-${index}`);
+ 
+                const textarea = document.createElement("textarea");
+                textarea.classList.add("form-control");
+                textarea.setAttribute("id", `${field[Object.keys(field)[0]]["mainLabel"][0] || "textarea"}-${index}`);
+                textarea.setAttribute("name", `${field[Object.keys(field)[0]]["mainLabel"][0] || "textarea"}-${index}`);
+ 
+                if (field[Object.keys(field)[0]].inputValidation) {
+                  field[Object.keys(field)[0]].inputValidation.forEach((ele) => {
+                    if (ele["prop"] && ele["val"]) {
+                      textarea.setAttribute(ele["prop"], ele["val"]);
+                    }
+                  });
+                }
+ 
+                if (field[Object.keys(field)[0]].shortHand) {
+                  field[Object.keys(field)[0]].shortHand.forEach((ele) => {
+                    if (ele) {
+                      textarea.setAttribute(ele, "");
+                    }
+                  });
+                }
+ 
+                divElement.appendChild(label);
+                divElement.appendChild(textarea);
+                formContainer.appendChild(divElement);
+              }
+ 
+              else if (["date", "email", "number", "file", "color", "range", "tel", "datetime-local","text"].includes(Object.keys(field)[0])) {
+                const divElement = document.createElement("div");
+                divElement.classList.add("mb-3");
+ 
+                const label = document.createElement("label");
+                label.textContent =field[Object.keys(field)[0]]["mainLabel"] || "Label";
+                label.classList.add("form-label");
+                label.setAttribute("for", `${field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+ 
+                const inp = document.createElement("input");
+                inp.setAttribute("type",Object.keys(field)[0]);
+                inp.classList.add("form-control");
+                inp.setAttribute("id", `${field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+                inp.setAttribute("name", `${field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+ 
+                if (field[Object.keys(field)[0]].inputValidation) {
+                  field[Object.keys(field)[0]].inputValidation.forEach((ele) => {
+                    if (ele["prop"] && ele["val"]) {
+                      inp.setAttribute(ele["prop"], ele["val"]);
+                    }
+                  });
+                }
+ 
+                if (field[Object.keys(field)[0]].shortHand) {
+                  field[Object.keys(field)[0]].shortHand.forEach((ele) => {
+                    if (ele) {
+                      inp.setAttribute(ele, "");
+                    }
+                  });
+                }
+ 
+                divElement.appendChild(label);
+                divElement.appendChild(inp);
+                formContainer.appendChild(divElement);
+              }
+ 
+             else if (Object.keys(field)[0] === "input") {
+                const divElement = document.createElement("div");
+                divElement.classList.add("mb-3");
+ 
+                const label = document.createElement("label");
+                label.textContent = field[Object.keys(field)[0]]["mainLabel"] || "Label";
+                label.classList.add("form-label");
+                label.setAttribute("for", `${ field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+ 
+                const inp = document.createElement("input");
+                inp.setAttribute("type", field[Object.keys(field)[0]]["inputType"] || "text");
+                inp.classList.add("form-control");
+                inp.setAttribute("id", `${field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+                inp.setAttribute("name", `${field[Object.keys(field)[0]]["mainLabel"] || "input"}-${index}`);
+ 
+                if (field[Object.keys(field)[0]].inputvalidation) {
+                  field[Object.keys(field)[0]].inputvalidation.forEach((ele) => {
+                    if (ele["prop"] && ele["val"]) {
+                      inp.setAttribute(ele["prop"], ele["val"]);
+                    }
+                  });
+                }
+ 
+                if (field[Object.keys(field)[0]].shortHand) {
+                  field[Object.keys(field)[0]].shortHand.forEach((ele) => {
+                    if (ele) {
+                      inp.setAttribute(ele, "");
+                    }
+                  });
+                }
+ 
+                divElement.appendChild(label);
+                divElement.appendChild(inp);
+                formContainer.appendChild(divElement);
+              }
+ 
+        });
+
+          }).
+          catch(err=>console.log(err))
+        })
+    
+      const submitForm= async(e) => {
+        e.preventDefault();
+        const formId = window.location.pathname.split("/")[2];
+        const token=localStorage.getItem("token");
+        const responseArray=[];
+        const form=document.getElementById("formContainer");
+        const divs=Array.from(form.childNodes);
+        const formData = new FormData(document.getElementById("formContainer"));
+        const responses = Object.fromEntries(formData.entries());
+        const radioButtons=Array.from(form.getElementsByClassName("radioinp"));
+        console.log(divs)
+        divs.forEach((element,index)=>{
+          console.log(element)
+          console.log(element.tagName)
+          if(element.getAttribute("class")==="radioinp"){
+              const radioChecked=document.getElementsByName(`radioGroup${index}`);
+              let checkedValue = null;
+ 
+              for (const radio of radioChecked) {
+                if (radio.checked) {
+                  checkedValue = radio.value;
+                  break;
+                }
+              }
+              console.log(checkedValue,"RADIO")
+              responseArray.push(checkedValue);
+          }
+  
+          else if(element.getAttribute("class")==="checkinp"){
+            const arr=[]
+             element.querySelectorAll('input[type="checkbox"]:checked').forEach(a=>{
+ 
+                arr.push(a.value)
+ 
+             })
+             responseArray.push(arr);
+          
+          }
+ 
+          else if(element.getAttribute("id")==="selectMenuDiv"){
+            const selectMenu=element.getElementsByTagName("select")[0].value;
+            responseArray.push(selectMenu);
+          }
+          
+          else if(element.getAttribute("id")==="textAreaDiv")
+          {
+            const textAreaValue=element.getElementsByTagName("textarea")[0].value;
+            console.log(textAreaValue)
+            responseArray.push(textAreaValue);
+          }
+ 
+          else {
+            console.log(element.getElementsByTagName("input")[0])
+            console.log(element)
+            const inputValue=element.getElementsByTagName("input")[0].value;
+            console.log(inputValue)
+            responseArray.push(inputValue);
+          }
+        
+        })
+        console.log(responseArray);
+        try {
+            fetch(`http://localhost:5000/auth/form/${formId}/submit`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ responses:responseArray }),
+          }).then((response) => {
+            if (response.status === 200) {
+              alert("Form submitted successfully!");
+ 
+            
+              window.location.href = "/dashboard";
+            } else {
+              alert("Failed to submit the form.");
+            }
+          }).catch (error=> {
+            console.error("Error submitting form:", error);
+          });
+       
+        } catch (error) {
+          console.error("Error submitting form:", error);
+        }
+      };
+ 
+   
+   
+  </script>
+ 
+ 
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="text-center">Fill Form</h1>
+    <form id="formContainer"></form>
+    <button id="submitFormButton" class="btn btn-primary w-100 mt-4">Submit</button>
+  </div>
+ 
+ 
+</body>
+</html>
+ 
